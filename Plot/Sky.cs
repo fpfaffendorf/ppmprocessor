@@ -59,7 +59,7 @@ namespace Plot
                     double dec = double.Parse(data[4], CultureInfo.InvariantCulture) * Math.PI / 180;
 
                     graphics3d.DrawPointSpherical(Color.White, dec, ra, Viewport.Height / 2, (int)(15 - vmag));
-                    graphics3d.DrawStringSpherical(Color.OrangeRed, 8, dec + 0.0004, ra + 0.0004, Viewport.Height / 2, index.ToString());
+                    graphics3d.DrawStringSpherical(Color.OrangeRed, 8, dec + 0.0006, ra + 0.0006, Viewport.Height / 2, index.ToString());
 
                     index++;
 

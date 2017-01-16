@@ -108,7 +108,8 @@ namespace Plot
 
             // Solid points only
             if (z < 0) return;
-            double originX = Bitmap.Width / 2 + x;
+
+            double originX = Bitmap.Width / 2 - x;
             double originY = Bitmap.Height / 2 + y;
 
             SolidBrush brush = new System.Drawing.SolidBrush(color);
@@ -145,7 +146,7 @@ namespace Plot
             // Solid points only
             if (z < 0) return;
 
-            double originX = Bitmap.Width / 2 + x;
+            double originX = Bitmap.Width / 2 - x;
             double originY = Bitmap.Height / 2 + y;
 
             SolidBrush brush = new System.Drawing.SolidBrush(color);
@@ -218,36 +219,6 @@ namespace Plot
                 }
             }
 
-        }
-
-        private double[,] MultiplyMatrix(double[,] A, double[,] B)
-        {
-            int rA = A.GetLength(0);
-            int cA = A.GetLength(1);
-            int rB = B.GetLength(0);
-            int cB = B.GetLength(1);
-            double temp = 0;
-            double[,] kHasil = new double[rA, cB];
-            if (cA != rB)
-            {
-                return null;
-            }
-            else
-            {
-                for (int i = 0; i < rA; i++)
-                {
-                    for (int j = 0; j < cB; j++)
-                    {
-                        temp = 0;
-                        for (int k = 0; k < cA; k++)
-                        {
-                            temp += A[i, k] * B[k, j];
-                        }
-                        kHasil[i, j] = temp;
-                    }
-                }
-                return kHasil;
-            }
         }
 
     }
