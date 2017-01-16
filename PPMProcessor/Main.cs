@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Globalization;
 using System.IO.Compression;
+using System.Drawing.Imaging;
 
 namespace PPMProcessor
 {
@@ -28,7 +29,7 @@ namespace PPMProcessor
         {
             InitializeComponent();
             FormConsole.Owner = this;
-            System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             this.FileNamePPMCatalog = config.AppSettings.Settings["FileNamePPMCatalog"].Value;
             this.FileNameNames = config.AppSettings.Settings["FileNameNames"].Value;
             string fileNamePPMCatalogZip = this.FileNamePPMCatalog.Replace(".tdat", ".zip");
@@ -44,6 +45,7 @@ namespace PPMProcessor
                 }
             }
             try { File.Delete(fileNamePPMCatalogZip); } catch (Exception) { }
+            tabPageList.Font = new Font(FontFamily.GenericMonospace, 8, FontStyle.Regular);
         }
 
         private void Main_Load(object sender, EventArgs e)
@@ -56,7 +58,7 @@ namespace PPMProcessor
             dataGridView.Columns[1].Name = "dm_number";
             dataGridView.Columns[2].Name = "vmag";
             dataGridView.Columns[2].DefaultCellStyle.Format = "N2";
-            dataGridView.Columns[3].Name = "spect_type";
+            dataGridView.Columns[3].Name = "spect";
             dataGridView.Columns[4].Name = "ra";
             dataGridView.Columns[5].Name = "dec";
             dataGridView.Columns[6].Name = "lii";
@@ -112,25 +114,16 @@ namespace PPMProcessor
             }
         }
 
-        private void toolStripMenuItemExit_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
         private void toolStripMenuItemCopy_Click(object sender, EventArgs e)
         {
             Clipboard.SetText(dataGridView.CurrentCell.Value.ToString());
         }
                 
-        private void Main_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            e.Cancel = !(MessageBox.Show("Closing PPM Processor.\r\nAre you sure you want to quit ?", "Close", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes);
-        }
-
         public void List()
         {
 
             tabControl.SelectedTab = tabPageList;
+            FormConsole.Focus();
 
             switch (FormConsole.TypeOfList)
             {
@@ -154,9 +147,12 @@ namespace PPMProcessor
                 try { File.Delete(FormConsole.FileName); } catch (Exception) {}
                 streamWriter = new StreamWriter(FormConsole.FileName);
                 bool first = true;
-                streamWriter.WriteLine("ra " + FormConsole.RA.ToString(CultureInfo.InvariantCulture));
-                streamWriter.WriteLine("dec " + FormConsole.Dec.ToString(CultureInfo.InvariantCulture));
-                streamWriter.WriteLine("fov " + FormConsole.FoV.ToString(CultureInfo.InvariantCulture));
+                double ra = this.FormConsole.RA;
+                double dec = this.FormConsole.Dec;
+                double fov = this.FormConsole.FoV;
+                streamWriter.WriteLine("ra " + ra.ToString(CultureInfo.InvariantCulture));
+                streamWriter.WriteLine("dec " + dec.ToString(CultureInfo.InvariantCulture));
+                streamWriter.WriteLine("fov " + fov.ToString(CultureInfo.InvariantCulture));
                 foreach (DataGridViewColumn c in dataGridView.Columns)
                 {
                     if (c.Visible)
@@ -301,6 +297,7 @@ namespace PPMProcessor
         {
 
             tabControl.SelectedTab = tabPageChart;
+            FormConsole.Focus();
 
             Bitmap bitmap = new Bitmap(pictureBox.Width, pictureBox.Height);
             Graphics3d graphics3d = new Graphics3d(
@@ -349,6 +346,32 @@ namespace PPMProcessor
                         AstronomyMath.DegToRad(double.Parse(dataGridView.Rows[recordIndexTo - 1].Cells[5].Value.ToString(), CultureInfo.InvariantCulture))
                     )
                 );
+        }
+
+        public void PrintList()
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            ((PrintableDataGridView)(dataGridView)).Print(
+                int.Parse(config.AppSettings.Settings["PrinterLeftRightMargin"].Value),
+                int.Parse(config.AppSettings.Settings["PrinterTopBottomMargin"].Value));
+        }
+
+        public void PrintChart()
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            ((PrintablePictureBox)(pictureBox)).Print(
+                int.Parse(config.AppSettings.Settings["PrinterLeftRightMargin"].Value),
+                int.Parse(config.AppSettings.Settings["PrinterTopBottomMargin"].Value));
+        }
+
+        private void toolStripMenuItemExit_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Main_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = !(MessageBox.Show("Closing PPM Processor.\r\nAre you sure you want to quit ?", "Close", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes);
         }
 
         private void HideColumns(int[] columns)

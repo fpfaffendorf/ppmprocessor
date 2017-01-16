@@ -50,6 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="cs\AstronomyMath.cs" />
+    <Compile Include="cs\PrintableDataGridView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="cs\PrintablePictureBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="FormConsole.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -38,7 +38,14 @@ namespace PPMProcessor
 
             this.Bitmap = bitmap;
             this.Graphics = Graphics.FromImage(bitmap);
-            this.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+            this.Graphics.FillRectangle(
+                new System.Drawing.SolidBrush(Color.White),
+                0,
+                0,
+                bitmap.Width,
+                bitmap.Height
+            );
+            this.Graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
             this.Latitude = latitude;
             this.Longitude = longitude;
             this.FoV = fov;

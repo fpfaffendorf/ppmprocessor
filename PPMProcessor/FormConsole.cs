@@ -17,12 +17,12 @@ namespace PPMProcessor
     {
 
         private string[] Commands = {"help", "clear", "records", "name", "vmag", "spect", "ra", "dec", "fov", "ra-format", "dec-format", "common-name", 
-                                     "list basic 1", "center", "angular-distance", "chart", "exit"};
+                                     "list basic 1", "center ", "angular-distance ", "chart", "print ", "exit"};
 
         public int Records = 500;
         public String PPMName = "";
         public double VMag1 = -2;
-        public double VMag2 = 15;
+        public double VMag2 = 13;
         public String Spect = "";
         public double RA = 0;
         public double Dec = 0;
@@ -88,6 +88,7 @@ namespace PPMProcessor
                         textBoxConsole.AppendText("> center [record index]\r\n");
                         textBoxConsole.AppendText("> angular-distance [record index from] [record index to]\r\n");
                         textBoxConsole.AppendText("> chart\r\n");
+                        textBoxConsole.AppendText("> print [list|chart]\r\n");
                         textBoxConsole.AppendText("> exit\r\n");
                     }
                     break;
@@ -365,6 +366,18 @@ namespace PPMProcessor
                         else
                         {
                             ((Main)this.Owner).Chart();
+                        }
+                    }
+                    break;
+
+                    case "print":
+                    {                       
+                        if (args[1] == "list") ((Main)this.Owner).PrintList();
+                        else if (args[1] == "chart") ((Main)this.Owner).PrintChart();
+                        else
+                        {
+                            textBoxConsole.AppendText("\r\n");
+                            textBoxConsole.AppendText("> error");
                         }
                     }
                     break;
