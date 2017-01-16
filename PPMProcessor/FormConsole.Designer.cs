@@ -42,7 +42,7 @@
             this.textBoxConsole.Multiline = true;
             this.textBoxConsole.Name = "textBoxConsole";
             this.textBoxConsole.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxConsole.Size = new System.Drawing.Size(519, 306);
+            this.textBoxConsole.Size = new System.Drawing.Size(519, 453);
             this.textBoxConsole.TabIndex = 0;
             this.textBoxConsole.TabStop = false;
             this.textBoxConsole.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxConsole_KeyDown);
@@ -51,7 +51,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(519, 306);
+            this.ClientSize = new System.Drawing.Size(519, 453);
             this.Controls.Add(this.textBoxConsole);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.KeyPreview = true;

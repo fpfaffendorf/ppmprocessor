@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Globalization;
+using System.IO;
 
 namespace Plot
 {
@@ -24,14 +25,34 @@ namespace Plot
 
             string[] args = Environment.GetCommandLineArgs();
 
-            double ra = double.Parse(args[1], CultureInfo.InvariantCulture);
-            double dec = double.Parse(args[2], CultureInfo.InvariantCulture);
-            double fov = double.Parse(args[3], CultureInfo.InvariantCulture);
+            try
+            {
 
-            Sky sky = new Sky(new Viewport(pictureBox.Width, pictureBox.Height), ra, dec, fov);
-            pictureBox.Image = sky.Render(args[4]);
+                StreamReader streamReaderChart = new StreamReader(args[1]);
+
+                double ra = double.Parse(streamReaderChart.ReadLine().Split(new char[] { ' ' })[1], CultureInfo.InvariantCulture);
+                double dec = double.Parse(streamReaderChart.ReadLine().Split(new char[] { ' ' })[1], CultureInfo.InvariantCulture);
+                double fov = double.Parse(streamReaderChart.ReadLine().Split(new char[] { ' ' })[1], CultureInfo.InvariantCulture);
+
+                this.Text += " " + ProductVersion + " [" + args[1] + "] FoV: " + fov.ToString(CultureInfo.InvariantCulture);
+
+                streamReaderChart.Close();
+
+                Sky sky = new Sky(new Viewport(pictureBox.Width, pictureBox.Height), ra, dec, fov, args[1]);
+                pictureBox.Image = sky.Render(false);
+
+            }
+            catch (Exception exception)
+            {
+
+                labelError.Visible = true;
+                labelError.Text = exception.Message + "\r\n";
+                labelError.Text += exception.StackTrace + "\r\n";
+           
+            }
 
         }
 
     }
+
 }

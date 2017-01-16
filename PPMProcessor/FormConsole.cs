@@ -8,30 +8,28 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Globalization;
+using System.Diagnostics;
+using System.Configuration;
 
 namespace PPMProcessor
 {
     public partial class FormConsole : Form
     {
 
-        public int Records = 100;
+        public int Records = 500;
         public String PPMName = "";
         public double VMag1 = -2;
         public double VMag2 = 15;
         public String Spect = "";
         public double RA = 0;
-        public double RAFrom = 0;
-        public double RATo = 24;
         public double Dec = 0;
-        public double DecFrom = -90;
-        public double DecTo = 90;
         public double FoV = 0;
-        public String RAFormat = "hms";
-        public String DecFormat = "dms";
+        public String RAFormat = "h";
+        public String DecFormat = "d";
         public String CommonName = "";
         public String TypeOfList = "full";
-        public String FileName = "";
-        public int Page = 0;
+        public String FileName = null;
+        public int Page = 1;
 
         private string LastCommand = "";
 
@@ -81,19 +79,12 @@ namespace PPMProcessor
                         textBoxConsole.AppendText("> ra [RA H] [RA M] [RA S.ss]\r\n");
                         textBoxConsole.AppendText("> dec [+|-][Dec decimal]\r\n");
                         textBoxConsole.AppendText("> dec [+|-][Dec D] [Dec M] [Dec S.ss]\r\n");
-                        textBoxConsole.AppendText("> ra-from [RA decimal]\r\n");
-                        textBoxConsole.AppendText("> ra-from [RA H] [RA M] [RA S.ss]\r\n");
-                        textBoxConsole.AppendText("> dec-from [+|-][Dec decimal]\r\n");
-                        textBoxConsole.AppendText("> dec-from [+|-][Dec D] [Dec M] [Dec S.ss]\r\n");
-                        textBoxConsole.AppendText("> ra-to [RA decimal]\r\n");
-                        textBoxConsole.AppendText("> ra-to [RA H] [RA M] [RA S.ss]\r\n");
-                        textBoxConsole.AppendText("> dec-to [+|-][Dec decimal]\r\n");
-                        textBoxConsole.AppendText("> dec-to [+|-][Dec D] [Dec M] [Dec S.ss]\r\n");
                         textBoxConsole.AppendText("> fov [Dec decimal]\r\n");
                         textBoxConsole.AppendText("> ra-format [hms|h|d|r]\r\n");
                         textBoxConsole.AppendText("> dec-format [dms|d|r]\r\n");
                         textBoxConsole.AppendText("> common-name [common name]\r\n");
                         textBoxConsole.AppendText("> list [all|basic] [page number|filename]\r\n");
+                        textBoxConsole.AppendText("> plot [filename]\r\n");
                         textBoxConsole.AppendText("> exit\r\n");
                     }
                     break;
@@ -184,13 +175,11 @@ namespace PPMProcessor
                     break;
 
                     case "ra":
-                    case "ra-from":
-                    case "ra-to":
                     {
                         if (args.Count() == 1)
                         {
                             textBoxConsole.AppendText("\r\n");
-                            textBoxConsole.AppendText("> " + args[0] + " " + (args[0] == "ra" ? this.RA : args[0] == "ra-from" ? this.RAFrom : this.RATo).ToString(CultureInfo.InvariantCulture));
+                            textBoxConsole.AppendText("> ra " + (this.RA).ToString(CultureInfo.InvariantCulture));
                         }
                         else
                         if (args.Count() == 2)
@@ -198,9 +187,7 @@ namespace PPMProcessor
                             try
                             {
                                 double ra_ = double.Parse(args[1], CultureInfo.InvariantCulture);
-                                if (args[0] == "ra") this.RA = ra_;
-                                else if (args[0] == "ra-from") this.RAFrom = ra_;
-                                else this.RATo = ra_;
+                                this.RA = ra_;
                             }
                             catch (Exception)
                             {
@@ -214,9 +201,7 @@ namespace PPMProcessor
                             try
                             {
                                 double ra_ = double.Parse(args[1], CultureInfo.InvariantCulture) + double.Parse(args[2], CultureInfo.InvariantCulture) / 60 + double.Parse(args[3], CultureInfo.InvariantCulture) / 3600;
-                                if (args[0] == "ra") this.RA = ra_;
-                                else if (args[0] == "ra-from") this.RAFrom = ra_;
-                                else this.RATo = ra_;
+                                this.RA = ra_;
                             }
                             catch (Exception)
                             {
@@ -224,65 +209,60 @@ namespace PPMProcessor
                                 textBoxConsole.AppendText("> error");
                             }
                         }
-                    }
-                    break;
-
-                    case "dec":
-                    case "dec-from":
-                    case "dec-to":
-                    {
-                        if (args.Count() == 1)
+                        else
+                        if ((args.Count() == 3) || (args.Count() > 4))
                         {
                             textBoxConsole.AppendText("\r\n");
-                            textBoxConsole.AppendText("> " + args[0] + " " + (args[0] == "dec" ? this.Dec : args[0] == "dec-from" ? this.DecFrom : this.DecTo).ToString(CultureInfo.InvariantCulture));
+                            textBoxConsole.AppendText("> error");
                         }
-                        else
-                            if (args.Count() == 2)
-                            {
-                                try
-                                {
-                                    double dec_ = double.Parse(args[1], CultureInfo.InvariantCulture);
-                                    if (args[0] == "dec") this.Dec = dec_;
-                                    else if (args[0] == "dec-from") this.DecFrom = dec_;
-                                    else this.DecTo = dec_;
-                                }
-                                catch (Exception)
-                                {
-                                    textBoxConsole.AppendText("\r\n");
-                                    textBoxConsole.AppendText("> error");
-                                }
-                            }
-                            else
-                                if (args.Count() == 4)
-                                {
-                                    try
-                                    {
-                                        double dec_ = double.Parse(args[1], CultureInfo.InvariantCulture);
-                                        dec_ += double.Parse(args[2], CultureInfo.InvariantCulture) / 60 * (args[1][0] == '-' ? -1 : 1);
-                                        dec_ += double.Parse(args[3], CultureInfo.InvariantCulture) / 3600 * (args[1][0] == '-' ? -1 : 1);
-                                        if (args[0] == "dec") this.Dec = dec_;
-                                        else if (args[0] == "dec-from") this.DecFrom = dec_;
-                                        else this.DecTo = dec_;
-                                    }
-                                    catch (Exception)
-                                    {
-                                        textBoxConsole.AppendText("\r\n");
-                                        textBoxConsole.AppendText("> error");
-                                    }
-                                }
                     }
                     break;
 
                     case "fov":
+                    case "dec":
                     {
-                        if (args.Length == 1)
+                        if (args.Count() == 1)
                         {
                             textBoxConsole.AppendText("\r\n");
-                            textBoxConsole.AppendText("> fov " + this.FoV);
+                            textBoxConsole.AppendText("> " + args[0] + " " + (args[0] == "dec" ? this.Dec : this.FoV).ToString(CultureInfo.InvariantCulture));
                         }
                         else
+                        if (args.Count() == 2)
                         {
-                            this.FoV = double.Parse(args[1], CultureInfo.InvariantCulture);
+                            try
+                            {
+                                double deg_ = double.Parse(args[1], CultureInfo.InvariantCulture);
+                                if (args[0] == "dec") this.Dec = deg_;
+                                else this.FoV = deg_;
+                            }
+                            catch (Exception)
+                            {
+                                textBoxConsole.AppendText("\r\n");
+                                textBoxConsole.AppendText("> error");
+                            }
+                        }
+                        else
+                        if (args.Count() == 4)
+                        {
+                            try
+                            {
+                                double deg_ = double.Parse(args[1], CultureInfo.InvariantCulture);
+                                deg_ += double.Parse(args[2], CultureInfo.InvariantCulture) / 60 * (args[1][0] == '-' ? -1 : 1);
+                                deg_ += double.Parse(args[3], CultureInfo.InvariantCulture) / 3600 * (args[1][0] == '-' ? -1 : 1);
+                                if (args[0] == "dec") this.Dec = deg_;
+                                else this.FoV = deg_;
+                            }
+                            catch (Exception)
+                            {
+                                textBoxConsole.AppendText("\r\n");
+                                textBoxConsole.AppendText("> error");
+                            }
+                        }
+                        else
+                        if ((args.Count() == 3) || (args.Count() > 4))
+                        {
+                            textBoxConsole.AppendText("\r\n");
+                            textBoxConsole.AppendText("> error");
                         }
                     }
                     break;
@@ -323,7 +303,7 @@ namespace PPMProcessor
                             textBoxConsole.AppendText("> common-name " + this.CommonName);
                         }
                         else
-                            if (args.Count() == 2)
+                            if (args.Count() >= 2)
                             {
                                 this.CommonName = args[1];
                             }
@@ -353,9 +333,19 @@ namespace PPMProcessor
                     }
                     break;
 
+                    case "plot":
+                    {
+                        System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                        Process.Start( 
+                            config.AppSettings.Settings["Plot"].Value,
+                            args[1]
+                            );
+                    }
+                    break;
+
                     case "exit":
                     {
-                        this.Close();
+                        this.Owner.Close();
                     }
                     break;
                     

@@ -49,11 +49,8 @@ namespace Plot
 
         }
 
-        public void DrawPointCartesian(Color color, double x, double y, double z, int diameter)
+        private void MapCoordinates(ref double x, ref double y, ref double z)
         {
-
-            SolidBrush brush = new System.Drawing.SolidBrush(color);
-
             y *= -1;
 
             // ---------------------------------------------------------
@@ -65,7 +62,7 @@ namespace Plot
             vector[0, 1] = y;
             vector[0, 2] = z;
 
-            double[,] r = MultiplyMatrix(vector, this.RotateY);
+            double[,] r = AstronomyMath.MultiplyMatrix(vector, this.RotateY);
 
             x = r[0, 0];
             y = r[0, 1];
@@ -80,14 +77,11 @@ namespace Plot
             vector[0, 1] = y;
             vector[0, 2] = z;
 
-            r = MultiplyMatrix(vector, this.RotateX);
+            r = AstronomyMath.MultiplyMatrix(vector, this.RotateX);
 
             x = r[0, 0];
             y = r[0, 1];
             z = r[0, 2];
-
-            // Solid Sphere
-            if (z < 0) return;
 
             // ---------------------------------------------------------
             // Camera 
@@ -99,16 +93,25 @@ namespace Plot
             vectorW[0, 2] = z;
             vectorW[0, 3] = 1;
 
-            r = MultiplyMatrix(vectorW, this.Camera);
+            r = AstronomyMath.MultiplyMatrix(vectorW, this.Camera);
 
             x = r[0, 0];
             y = r[0, 1];
-            z = r[0, 2];
+            z = r[0, 2];            
 
-            // ---------------------------------------------------------
+        }
 
+        public void DrawPointCartesian(Color color, double x, double y, double z, int diameter)
+        {
+
+            this.MapCoordinates(ref x, ref y, ref z);
+
+            // Solid points only
+            if (z < 0) return;
             double originX = Bitmap.Width / 2 + x;
             double originY = Bitmap.Height / 2 + y;
+
+            SolidBrush brush = new System.Drawing.SolidBrush(color);
 
             this.Graphics.FillEllipse(
                 brush,
@@ -126,11 +129,50 @@ namespace Plot
             double thita = latitude + Math.PI / 2;
             double phi = longitude - Math.PI / 2;
 
-            this.DrawPointCartesian(color, 
+            this.DrawPointCartesian(color,
                                     radius * Math.Sin(thita) * Math.Cos(phi),
                                     radius * Math.Cos(thita),
-                                    radius * -1 * Math.Sin(thita) * Math.Sin(phi), 
+                                    radius * -1 * Math.Sin(thita) * Math.Sin(phi),
                                     diameter);
+
+        }
+
+        public void DrawStringCartesian(Color color, int size, double x, double y, double z, string str)
+        {
+
+            this.MapCoordinates(ref x, ref y, ref z);
+
+            // Solid points only
+            if (z < 0) return;
+
+            double originX = Bitmap.Width / 2 + x;
+            double originY = Bitmap.Height / 2 + y;
+
+            SolidBrush brush = new System.Drawing.SolidBrush(color);
+            Font font = new Font(FontFamily.GenericMonospace, size);
+
+            this.Graphics.DrawString(str, 
+                font, 
+                brush,
+                (int)Math.Truncate(originX),
+                (int)Math.Truncate(originY));
+
+        }
+
+        public void DrawStringSpherical(Color color, int size, double latitude, double longitude, double radius, string str)
+        {
+
+            latitude *= -1;
+
+            double thita = latitude + Math.PI / 2;
+            double phi = longitude - Math.PI / 2;
+
+            this.DrawStringCartesian(color, 
+                                     size,
+                                     radius * Math.Sin(thita) * Math.Cos(phi),
+                                     radius * Math.Cos(thita),
+                                     radius * -1 * Math.Sin(thita) * Math.Sin(phi),
+                                     str);
 
         }
 
@@ -178,7 +220,6 @@ namespace Plot
 
         }
 
-
         private double[,] MultiplyMatrix(double[,] A, double[,] B)
         {
             int rA = A.GetLength(0);
@@ -208,7 +249,6 @@ namespace Plot
                 return kHasil;
             }
         }
-
 
     }
 

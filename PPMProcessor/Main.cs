@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Globalization;
+using System.IO.Compression;
 
 namespace PPMProcessor
 {
@@ -18,8 +19,8 @@ namespace PPMProcessor
 
         private FormConsole FormConsole = new FormConsole();
 
-        private String FileNamePPMCatalog = "catalog/heasarc_ppm.tdat";
-        private String FileNameNames = "catalog/names.tdat";
+        private String FileNamePPMCatalog = "";
+        private String FileNameNames = "";
 
         private Dictionary<string, string> Names = new Dictionary<string, string>();
 
@@ -27,12 +28,28 @@ namespace PPMProcessor
         {
             InitializeComponent();
             FormConsole.Owner = this;
+            System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            this.FileNamePPMCatalog = config.AppSettings.Settings["FileNamePPMCatalog"].Value;
+            this.FileNameNames = config.AppSettings.Settings["FileNameNames"].Value;
+            string fileNamePPMCatalogZip = this.FileNamePPMCatalog.Replace(".tdat", ".zip");
+            if (!File.Exists(this.FileNamePPMCatalog))
+            {
+                try
+                {
+                    ZipFile.ExtractToDirectory(fileNamePPMCatalogZip, this.FileNamePPMCatalog.Replace("heasarc_ppm.tdat", ""));
+                }
+                catch(Exception)
+                {
+
+                }
+            }
+            try { File.Delete(fileNamePPMCatalogZip); } catch (Exception) { }
         }
 
         private void Main_Load(object sender, EventArgs e)
         {
 
-            this.Text = "PPM Processor " + ProductVersion + " [" + this.FileNamePPMCatalog + "]";
+            this.Text = "PPM Processor " + ProductVersion;
             dataGridView.ColumnCount = 26;
 
             dataGridView.Columns[0].Name = "name";
@@ -132,9 +149,12 @@ namespace PPMProcessor
             StreamWriter streamWriter = null;
             if (FormConsole.FileName != null)
             {
-                File.Delete(FormConsole.FileName);
+                try { File.Delete(FormConsole.FileName); } catch (Exception) {}
                 streamWriter = new StreamWriter(FormConsole.FileName);
                 bool first = true;
+                streamWriter.WriteLine("ra " + FormConsole.RA.ToString(CultureInfo.InvariantCulture));
+                streamWriter.WriteLine("dec " + FormConsole.Dec.ToString(CultureInfo.InvariantCulture));
+                streamWriter.WriteLine("fov " + FormConsole.FoV.ToString(CultureInfo.InvariantCulture));
                 foreach (DataGridViewColumn c in dataGridView.Columns)
                 {
                     if (c.Visible)
@@ -193,7 +213,6 @@ namespace PPMProcessor
                             double s = (((raStar - h) * 60) - m) * 60;
                             data[4] = (h).ToString(CultureInfo.InvariantCulture) + " " + m.ToString(CultureInfo.InvariantCulture) + " " + s.ToString("N3", CultureInfo.InvariantCulture);
                         }
-                        if ((raStar < FormConsole.RAFrom) || (raStar > FormConsole.RATo)) continue;
 
                         // Dec 
                         double decStar = double.Parse(data[5], CultureInfo.InvariantCulture); // Dec D format
@@ -210,13 +229,12 @@ namespace PPMProcessor
                             }
                             data[5] = (decStar < 0 ? "-" : "") + (d).ToString(CultureInfo.InvariantCulture) + " " + m.ToString(CultureInfo.InvariantCulture) + " " + s.ToString("N3", CultureInfo.InvariantCulture);
                         }
-                        if ((decStar < FormConsole.DecFrom) || (decStar > FormConsole.DecTo)) continue;
 
                         // FoV
                         if (FormConsole.FoV > 0)
                         {
 
-                            double fov = FormConsole.FoV * Math.PI / 180;
+                            double fov = (FormConsole.FoV * Math.PI / 180) / 2;
                             double d = this.angularDistance(
                                                     (FormConsole.RA * 360 / 24) * Math.PI / 180,
                                                     (FormConsole.Dec * Math.PI / 180),
