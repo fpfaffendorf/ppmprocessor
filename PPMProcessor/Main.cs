@@ -204,47 +204,35 @@ namespace PPMProcessor
                         if (!spectStar.StartsWith(FormConsole.Spect)) continue;
 
                         // RA
-                        double raStar = double.Parse(data[4], CultureInfo.InvariantCulture) * 24 / 360; // RA H format
+                        double raStar = AstronomyMath.DegToHour(double.Parse(data[4], CultureInfo.InvariantCulture)); // RA H format
                         if (FormConsole.RAFormat == "h") data[4] = (raStar).ToString(CultureInfo.InvariantCulture);
-                        else if (FormConsole.RAFormat == "d") data[4] = (raStar * 360 / 24).ToString(CultureInfo.InvariantCulture);
-                        else if (FormConsole.RAFormat == "r") data[4] = (raStar * 360 / 24 * Math.PI / 180).ToString(CultureInfo.InvariantCulture);
+                        else if (FormConsole.RAFormat == "d") data[4] = AstronomyMath.HourToDeg(raStar).ToString(CultureInfo.InvariantCulture);
+                        else if (FormConsole.RAFormat == "r") data[4] = AstronomyMath.DegToRad(AstronomyMath.HourToDeg(raStar)).ToString(CultureInfo.InvariantCulture);
                         else if (FormConsole.RAFormat == "hms")
                         {
-                            double h = (int)Math.Truncate(raStar);
-                            double m = Math.Truncate((raStar - h) * 60);
-                            double s = (((raStar - h) * 60) - m) * 60;
-                            data[4] = (h).ToString(CultureInfo.InvariantCulture) + " " + m.ToString(CultureInfo.InvariantCulture) + " " + s.ToString("N3", CultureInfo.InvariantCulture);
+                            double[] hms = AstronomyMath.HourToHMS(raStar);
+                            data[4] = hms[0].ToString(CultureInfo.InvariantCulture) + " " + hms[1].ToString(CultureInfo.InvariantCulture) + " " + hms[2].ToString("N3", CultureInfo.InvariantCulture);
                         }
 
                         // Dec 
                         double decStar = double.Parse(data[5], CultureInfo.InvariantCulture); // Dec D format
                         if (FormConsole.DecFormat == "d") data[5] = (decStar).ToString(CultureInfo.InvariantCulture);
-                        else if (FormConsole.DecFormat == "r") data[5] = (decStar * Math.PI / 180).ToString(CultureInfo.InvariantCulture);
+                        else if (FormConsole.DecFormat == "r") data[5] = AstronomyMath.DegToRad(decStar).ToString(CultureInfo.InvariantCulture);
                         else if (FormConsole.DecFormat == "dms")
                         {
-                            double d = (int)Math.Truncate(decStar);
-                            double m = Math.Truncate((decStar - d) * 60);
-                            double s = (((decStar - d) * 60) - m) * 60;
-                            if (decStar < 0)
-                            {
-                                d *= -1; m *= -1; s *= -1;
-                            }
-                            data[5] = (decStar < 0 ? "-" : "") + (d).ToString(CultureInfo.InvariantCulture) + " " + m.ToString(CultureInfo.InvariantCulture) + " " + s.ToString("N3", CultureInfo.InvariantCulture);
+                            double[] dms = AstronomyMath.DegToDMS(decStar);
+                            data[5] = (decStar < 0 ? "-" : "") + dms[0].ToString(CultureInfo.InvariantCulture) + " " + dms[1].ToString(CultureInfo.InvariantCulture) + " " + dms[2].ToString("N3", CultureInfo.InvariantCulture);
                         }
 
                         // FoV
                         if (FormConsole.FoV > 0)
                         {
 
-                            double fov = (FormConsole.FoV * Math.PI / 180) / 2;
-                            double d = this.angularDistance(
-                                                    (FormConsole.RA * 360 / 24) * Math.PI / 180,
-                                                    (FormConsole.Dec * Math.PI / 180),
-                                                    (raStar * 360 / 24) * Math.PI / 180,
-                                                    (decStar * Math.PI / 180));
-
-                            if (fov < d) continue;
-
+                            if (AstronomyMath.DegToRad(FormConsole.FoV) / 2 < AstronomyMath.AngularDistance(
+                                                                                AstronomyMath.DegToRad(AstronomyMath.HourToDeg(FormConsole.RA)),
+                                                                                AstronomyMath.DegToRad(FormConsole.Dec),
+                                                                                AstronomyMath.DegToRad(AstronomyMath.HourToDeg(raStar)),
+                                                                                AstronomyMath.DegToRad(decStar))) continue;
                         }
 
                         // RA Cat
@@ -317,27 +305,11 @@ namespace PPMProcessor
             Bitmap bitmap = new Bitmap(pictureBox.Width, pictureBox.Height);
             Graphics3d graphics3d = new Graphics3d(
                 bitmap,
-                FormConsole.Dec * Math.PI / 180 * -1,
-                (FormConsole.RA * 360 / 24) * Math.PI / 180 * -1,
-                FormConsole.FoV * Math.PI / 180);
+                AstronomyMath.DegToRad(FormConsole.Dec),
+                AstronomyMath.DegToRad(AstronomyMath.HourToDeg(FormConsole.RA)),
+                AstronomyMath.DegToRad(FormConsole.FoV));
 
-            double raGrid = FormConsole.RA * 360 / 24;
-            double decGrid = FormConsole.Dec * Math.PI / 180;
-
-            for (double l = -90; l <= 90; l += FormConsole.FoV / 100)
-            {
-                graphics3d.DrawPointSpherical(Color.Red, l * Math.PI / 180, (raGrid - FormConsole.FoV / 3) * Math.PI / 180, pictureBox.Height / 2, 2);
-                graphics3d.DrawPointSpherical(Color.Red, l * Math.PI / 180, (raGrid) * Math.PI / 180                      , pictureBox.Height / 2, 2);
-                graphics3d.DrawPointSpherical(Color.Red, l * Math.PI / 180, (raGrid + FormConsole.FoV / 3) * Math.PI / 180, pictureBox.Height / 2, 2);
-            }
-
-            for (double l = 0; l <= 360; l += FormConsole.FoV / 100)
-            {
-                graphics3d.DrawPointSpherical(Color.Red, (decGrid - FormConsole.FoV / 3) * Math.PI / 180, l * Math.PI / 180, pictureBox.Height / 2, 2);
-                graphics3d.DrawPointSpherical(Color.Red, (decGrid * Math.PI / 180)                      , l * Math.PI / 180, pictureBox.Height / 2, 2);
-                graphics3d.DrawPointSpherical(Color.Red, (decGrid + FormConsole.FoV / 3) * Math.PI / 180, l * Math.PI / 180, pictureBox.Height / 2, 2);
-            }
-
+            graphics3d.DrawGrid(Color.Red, Color.Red, pictureBox.Height / 2);
 
             int index = 1;
 
@@ -348,10 +320,10 @@ namespace PPMProcessor
                 {
 
                     double vmag = double.Parse(dataGridViewRow.Cells[2].Value.ToString(), CultureInfo.InvariantCulture);
-                    double ra = (double.Parse(dataGridViewRow.Cells[4].Value.ToString(), CultureInfo.InvariantCulture) * 360 / 24) * Math.PI / 180;
-                    double dec = double.Parse(dataGridViewRow.Cells[5].Value.ToString(), CultureInfo.InvariantCulture) * Math.PI / 180;
+                    double ra = AstronomyMath.DegToRad(AstronomyMath.HourToDeg(double.Parse(dataGridViewRow.Cells[4].Value.ToString(), CultureInfo.InvariantCulture)));
+                    double dec = AstronomyMath.DegToRad(double.Parse(dataGridViewRow.Cells[5].Value.ToString(), CultureInfo.InvariantCulture));
 
-                    graphics3d.DrawPointSpherical(Color.Black, dec, ra, pictureBox.Height / 2, (int)(15 - vmag));
+                    graphics3d.DrawPointSpherical(Color.Black, dec, ra, pictureBox.Height / 2, (int)(FormConsole.VMag2 - vmag));
                     graphics3d.DrawStringSpherical(Color.Black, 8, dec + FormConsole.FoV / 1800, ra + FormConsole.FoV / 1800, pictureBox.Height / 2, index.ToString());
 
                     index++;
@@ -367,19 +339,24 @@ namespace PPMProcessor
 
         }
 
+        public double AngularDistance(int recordIndexFrom, int recordIndexTo)
+        {
+            return AstronomyMath.RadToDeg(
+                AstronomyMath.AngularDistance(
+                        AstronomyMath.DegToRad(AstronomyMath.HourToDeg(double.Parse(dataGridView.Rows[recordIndexFrom - 1].Cells[4].Value.ToString(), CultureInfo.InvariantCulture))),
+                        AstronomyMath.DegToRad(double.Parse(dataGridView.Rows[recordIndexFrom - 1].Cells[5].Value.ToString(), CultureInfo.InvariantCulture)),
+                        AstronomyMath.DegToRad(AstronomyMath.HourToDeg(double.Parse(dataGridView.Rows[recordIndexTo - 1].Cells[4].Value.ToString(), CultureInfo.InvariantCulture))),
+                        AstronomyMath.DegToRad(double.Parse(dataGridView.Rows[recordIndexTo - 1].Cells[5].Value.ToString(), CultureInfo.InvariantCulture))
+                    )
+                );
+        }
+
         private void HideColumns(int[] columns)
         {
             foreach (DataGridViewColumn c in dataGridView.Columns)
             {
                 c.Visible = !columns.Contains(c.Index);
             }
-        }
-
-        private double angularDistance(double ra1, double dec1, double ra2, double dec2)
-        {
-
-            return Math.Acos(Math.Sin(dec1) * Math.Sin(dec2) + Math.Cos(dec1) * Math.Cos(dec2) * Math.Cos(ra1 - ra2));
-
         }
 
     }

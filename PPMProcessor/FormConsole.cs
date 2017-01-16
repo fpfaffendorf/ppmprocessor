@@ -16,6 +16,9 @@ namespace PPMProcessor
     public partial class FormConsole : Form
     {
 
+        private string[] Commands = {"help", "clear", "records", "name", "vmag", "spect", "ra", "dec", "fov", "ra-format", "dec-format", "common-name", 
+                                     "list basic 1", "center", "angular-distance", "chart", "exit"};
+
         public int Records = 500;
         public String PPMName = "";
         public double VMag1 = -2;
@@ -31,8 +34,6 @@ namespace PPMProcessor
         public String FileName = null;
         public int Page = 1;
 
-        private string LastCommand = "";
-
         public FormConsole()
         {
             InitializeComponent();
@@ -46,10 +47,13 @@ namespace PPMProcessor
         private void textBoxConsole_KeyDown(object sender, KeyEventArgs e)
         {
 
+            string command = "";
+            try { command = textBoxConsole.Lines[textBoxConsole.GetLineFromCharIndex(textBoxConsole.SelectionStart)]; } catch(Exception) {}
+
             if (e.KeyCode == Keys.Tab)
             {
                 e.SuppressKeyPress = true;
-                textBoxConsole.Text += this.LastCommand;
+                try { textBoxConsole.Text += Commands.First(s => s.StartsWith(command)).Substring(command.Length); } catch (Exception) { }
                 textBoxConsole.SelectionStart = textBoxConsole.Text.Length;
                 textBoxConsole.ScrollToCaret();
             }
@@ -59,10 +63,7 @@ namespace PPMProcessor
 
                 if (textBoxConsole.Text == "") return;
 
-                string command = textBoxConsole.Lines[textBoxConsole.GetLineFromCharIndex(textBoxConsole.SelectionStart)];
                 string[] args = command.Split(new char[] { ' ' });
-
-                this.LastCommand = command;
 
                 switch (args[0])
                 {
@@ -85,6 +86,7 @@ namespace PPMProcessor
                         textBoxConsole.AppendText("> common-name [common name]\r\n");
                         textBoxConsole.AppendText("> list [all|basic] [page number|filename]\r\n");
                         textBoxConsole.AppendText("> center [record index]\r\n");
+                        textBoxConsole.AppendText("> angular-distance [record index from] [record index to]\r\n");
                         textBoxConsole.AppendText("> chart\r\n");
                         textBoxConsole.AppendText("> exit\r\n");
                     }
@@ -337,6 +339,13 @@ namespace PPMProcessor
                     case "center":
                     {
                         ((Main)this.Owner).Center(int.Parse(args[1]), ref this.RA, ref this.Dec);
+                    }
+                    break;
+
+                    case "angular-distance":
+                    {
+                        textBoxConsole.AppendText("\r\n");
+                        textBoxConsole.AppendText("> angular-distance " + ((Main)this.Owner).AngularDistance(int.Parse(args[1]), int.Parse(args[2])).ToString(CultureInfo.InvariantCulture));
                     }
                     break;
 

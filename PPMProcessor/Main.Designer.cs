@@ -207,4 +207,5 @@
         private System.Windows.Forms.TabPage tabPageChart;
         private System.Windows.Forms.PictureBox pictureBox;
     }
+
 }

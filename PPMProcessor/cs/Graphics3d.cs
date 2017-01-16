@@ -7,41 +7,53 @@ namespace PPMProcessor
     class Graphics3d
     {
 
+        // Canvas
         private Graphics Graphics;
         private Bitmap Bitmap;
-        private double ThitaX;
-        private double ThitaY;
-        private double Aspect = 0;
+        // Latitude Camera RAD
+        private double Latitude;
+        // Longitude Camera RAD
+        private double Longitude;
+        // Aspect Ratio
+        private double Aspect = 1;
+        // Field of View RAD
         private double FoV = 0;
+        // Near and Far Z
         private const double NearZ = 100;
         private const double FarZ = 1000;
 
+        // Rotation Matrix
         private double[,] RotateY = new double[3, 3];
         private double[,] RotateX = new double[3, 3];
         private double[,] Camera = new double[4, 4];
 
-        public Graphics3d(Bitmap bitmap, double thitaX, double thitaY, double fov)
+        // Current line point
+        private Point currentLinePoint = new Point(-1, -1);
+
+        // Constructor
+        public Graphics3d(Bitmap bitmap, double latitude, double longitude, double fov)
         {
+
+            longitude *= -1;
 
             this.Bitmap = bitmap;
             this.Graphics = Graphics.FromImage(bitmap);
             this.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-            this.ThitaX = thitaX;
-            this.ThitaY = thitaY;
-            this.Aspect = bitmap.Width / bitmap.Height;
+            this.Latitude = latitude;
+            this.Longitude = longitude;
             this.FoV = fov;
 
-            this.RotateY[0, 0] = Math.Cos(thitaY);
-            this.RotateY[0, 2] = Math.Sin(thitaY) * -1;
+            this.RotateY[0, 0] = Math.Cos(longitude);
+            this.RotateY[0, 2] = Math.Sin(longitude) * -1;
             this.RotateY[1, 1] = 1;
-            this.RotateY[2, 0] = Math.Sin(thitaY);
-            this.RotateY[2, 2] = Math.Cos(thitaY);
+            this.RotateY[2, 0] = Math.Sin(longitude);
+            this.RotateY[2, 2] = Math.Cos(longitude);
 
             this.RotateX[0, 0] = 1;
-            this.RotateX[1, 1] = Math.Cos(thitaX);
-            this.RotateX[1, 2] = Math.Sin(thitaX);
-            this.RotateX[2, 1] = Math.Sin(thitaX) * -1;
-            this.RotateX[2, 2] = Math.Cos(thitaX);
+            this.RotateX[1, 1] = Math.Cos(latitude);
+            this.RotateX[1, 2] = Math.Sin(latitude);
+            this.RotateX[2, 1] = Math.Sin(latitude) * -1;
+            this.RotateX[2, 2] = Math.Cos(latitude);
 
             this.Camera[0, 0] = 1 / (this.Aspect * Math.Tan(this.FoV / 2));
             this.Camera[1, 1] = 1 / (Math.Tan(this.FoV / 2));
@@ -51,8 +63,10 @@ namespace PPMProcessor
 
         }
 
+        // Map XYZ coordinates for the current camera
         private void MapCoordinates(ref double x, ref double y, ref double z)
         {
+
             y *= -1;
 
             // ---------------------------------------------------------
@@ -103,53 +117,96 @@ namespace PPMProcessor
 
         }
 
-        public void DrawPointCartesian(Color color, double x, double y, double z, int diameter)
+        // Draw a point using cartesian coordinates
+        private void DrawPointCartesian(Color color, double x, double y, double z, int diameter)
         {
 
             this.MapCoordinates(ref x, ref y, ref z);
-
-            // Solid points only
             if (z < 0) return;
 
             double originX = Bitmap.Width / 2 - x;
-            double originY = Bitmap.Height / 2 + y;
+            double originY = Bitmap.Height / 2 - y;
 
             SolidBrush brush = new System.Drawing.SolidBrush(color);
 
             this.Graphics.FillEllipse(
                 brush,
-                (int)Math.Truncate(originX),
-                (int)Math.Truncate(originY),
+                (int)(Math.Truncate(originX) - (diameter / 2)),
+                (int)(Math.Truncate(originY) - (diameter / 2)),
                 diameter, diameter);
 
         }
 
+        // Draw a point using spherical coordinates
         public void DrawPointSpherical(Color color, double latitude, double longitude, double radius, int diameter)
         {
 
-            latitude *= -1;
-
-            double thita = latitude + Math.PI / 2;
-            double phi = longitude - Math.PI / 2;
+            latitude = latitude + Math.PI / 2;
+            longitude = longitude - Math.PI / 2;
 
             this.DrawPointCartesian(color,
-                                    radius * Math.Sin(thita) * Math.Cos(phi),
-                                    radius * Math.Cos(thita),
-                                    radius * -1 * Math.Sin(thita) * Math.Sin(phi),
+                                    radius * Math.Sin(latitude) * Math.Cos(longitude),
+                                    radius * Math.Cos(latitude),
+                                    radius * -1 * Math.Sin(latitude) * Math.Sin(longitude),
                                     diameter);
 
         }
 
-        public void DrawStringCartesian(Color color, int size, double x, double y, double z, string str)
+        // Draw line reset current coordinates
+        public void DrawLineReset()
+        {
+            this.currentLinePoint = new Point(-1, -1);
+        }
+
+        // Draw a line from current coordinates to given coordinates using cartesian coordinates
+        private void DrawLineCartesian(Color color, double x, double y, double z)
         {
 
             this.MapCoordinates(ref x, ref y, ref z);
-
-            // Solid points only
             if (z < 0) return;
 
             double originX = Bitmap.Width / 2 - x;
-            double originY = Bitmap.Height / 2 + y;
+            double originY = Bitmap.Height / 2 - y;
+
+            Pen pen = new Pen(color);
+            Point point = new Point((int)Math.Truncate(originX), (int)Math.Truncate(originY));
+
+            if ((this.currentLinePoint.X >= 0) && (this.currentLinePoint.Y >= 0))
+            {
+                this.Graphics.DrawLine(
+                    pen,
+                    this.currentLinePoint,
+                    point
+                    );
+            }
+
+            this.currentLinePoint = point;
+
+        }
+
+        // Draw a line from current coordinates to given coordinates using spherical coordinates
+        public void DrawLineSpherical(Color color, double latitude, double longitude, double radius)
+        {
+
+            latitude = latitude + Math.PI / 2;
+            longitude = longitude - Math.PI / 2;
+
+            this.DrawLineCartesian(color,
+                                   radius * Math.Sin(latitude) * Math.Cos(longitude),
+                                   radius * Math.Cos(latitude),
+                                   radius * -1 * Math.Sin(latitude) * Math.Sin(longitude));
+
+        }
+
+        // Draw a string using cartesian coordinates
+        private void DrawStringCartesian(Color color, int size, double x, double y, double z, string str)
+        {
+
+            this.MapCoordinates(ref x, ref y, ref z);
+            if (z < 0) return;
+
+            double originX = Bitmap.Width / 2 - x;
+            double originY = Bitmap.Height / 2 - y;
 
             SolidBrush brush = new System.Drawing.SolidBrush(color);
             Font font = new Font(FontFamily.GenericMonospace, size);
@@ -162,67 +219,70 @@ namespace PPMProcessor
 
         }
 
+        // Draw a string using spherical coordinates
         public void DrawStringSpherical(Color color, int size, double latitude, double longitude, double radius, string str)
         {
 
-            latitude *= -1;
-
-            double thita = latitude + Math.PI / 2;
-            double phi = longitude - Math.PI / 2;
+            latitude = latitude + Math.PI / 2;
+            longitude = longitude - Math.PI / 2;
 
             this.DrawStringCartesian(color, 
                                      size,
-                                     radius * Math.Sin(thita) * Math.Cos(phi),
-                                     radius * Math.Cos(thita),
-                                     radius * -1 * Math.Sin(thita) * Math.Sin(phi),
+                                     radius * Math.Sin(latitude) * Math.Cos(longitude),
+                                     radius * Math.Cos(latitude),
+                                     radius * -1 * Math.Sin(latitude) * Math.Sin(longitude),
                                      str);
 
         }
 
-        public void DrawSphere(Color colorLatitude, Color colorLongitude, double radius)
+        // Draw coordinates grid
+        public void DrawGrid(Color colorLatitude, Color colorLongitude, double radius)
         {
 
+            double[] latitudeArray = {
+                (this.Latitude) + this.FoV / 3,
+                (this.Latitude) - this.FoV / 3
+            };
+
             // Draw Latitude Lines
-            for (double thita = 0; thita < Math.PI; thita += Math.PI / 18)
+            foreach(double latitude in latitudeArray)
             {
-                double x = radius * Math.Sin(thita);
-                double y = radius * Math.Cos(thita);
-                double z = radius * -1 * Math.Sin(thita);
-                for (double phi = 0; phi < 2 * Math.PI; phi += .03)
+                this.DrawLineReset();
+                for (double longitude = 0; longitude < 2 * Math.PI; longitude += this.FoV / 20)
                 {
-                    this.DrawPointCartesian(
+                    this.DrawLineSpherical(
                             colorLatitude,
-                            x * Math.Cos(phi),
-                            y,
-                            z * Math.Sin(phi),
-                            2
+                            latitude,
+                            longitude,
+                            radius
                         );
                 }
             }
 
+            double[] longitudeArray = {
+                (Math.Abs(this.Latitude) != Math.PI / 2 ? (this.Longitude * -1) + this.FoV / (Math.Cos(this.Latitude) * 3) : 0),
+                (Math.Abs(this.Latitude) != Math.PI / 2 ? (this.Longitude * -1) - this.FoV / (Math.Cos(this.Latitude) * 3) : Math.PI / 2)
+            };
+
             // Draw Longitude Lines
-            for (double phi = 0; phi < Math.PI - 0.1; phi += Math.PI / 18)
+            foreach (double longitude in longitudeArray)
             {
-                double x = radius * Math.Cos(phi);
-                double z = radius * -1 * Math.Sin(phi);
-                for (double thita = 0; thita < 2 * Math.PI; thita += .03)
+                this.DrawLineReset();
+                for (double latitude = 0; latitude < 2 * Math.PI; latitude += this.FoV / 20)
                 {
-                    if (((thita > 0.174) && (thita < 2.967)) ||
-                        ((thita > 3.316) && (thita < 6.108)))
-                    {
-                        this.DrawPointCartesian(
-                                colorLongitude,
-                                Math.Sin(thita) * x,
-                                radius * Math.Cos(thita),
-                                Math.Sin(thita) * z,
-                                2
-                            );
-                    }
+                    this.DrawLineSpherical(
+                            colorLongitude,
+                            latitude,
+                            longitude,
+                            radius
+                        );
                 }
+
             }
 
         }
 
+        // Draw circular FoV
         public void DrawFoV(Color color)
         {
             this.Graphics.DrawArc(new Pen(color), 0, 0, this.Bitmap.Width - 1, this.Bitmap.Height - 1, 0, 360);
