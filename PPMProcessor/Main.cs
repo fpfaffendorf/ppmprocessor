@@ -130,6 +130,8 @@ namespace PPMProcessor
         public void List()
         {
 
+            tabControl.SelectedTab = tabPageList;
+
             switch (FormConsole.TypeOfList)
             {
                 case "basic":
@@ -254,6 +256,9 @@ namespace PPMProcessor
                         data[9] = data[9].Replace("+", "");
                         data[9] = data[9].Trim();
 
+                        // Notes
+                        data[23] = data[23].Replace(" ", "");
+
                         // List                       
                         {
 
@@ -296,6 +301,70 @@ namespace PPMProcessor
             if (streamWriter != null) streamWriter.Close();
             contextMenuStripDataGridView.Enabled = true;
             toolStripMenuItemCopy.Enabled = true;
+        }
+
+        public void Center(int recordIndex, ref double RA, ref double Dec)
+        {
+            RA = double.Parse(dataGridView.Rows[recordIndex - 1].Cells[4].Value.ToString(), CultureInfo.InvariantCulture);
+            Dec = double.Parse(dataGridView.Rows[recordIndex - 1].Cells[5].Value.ToString(), CultureInfo.InvariantCulture);
+        }
+
+        public void Chart()
+        {
+
+            tabControl.SelectedTab = tabPageChart;
+
+            Bitmap bitmap = new Bitmap(pictureBox.Width, pictureBox.Height);
+            Graphics3d graphics3d = new Graphics3d(
+                bitmap,
+                FormConsole.Dec * Math.PI / 180 * -1,
+                (FormConsole.RA * 360 / 24) * Math.PI / 180 * -1,
+                FormConsole.FoV * Math.PI / 180);
+
+            double raGrid = FormConsole.RA * 360 / 24;
+            double decGrid = FormConsole.Dec * Math.PI / 180;
+
+            for (double l = -90; l <= 90; l += FormConsole.FoV / 100)
+            {
+                graphics3d.DrawPointSpherical(Color.Red, l * Math.PI / 180, (raGrid - FormConsole.FoV / 3) * Math.PI / 180, pictureBox.Height / 2, 2);
+                graphics3d.DrawPointSpherical(Color.Red, l * Math.PI / 180, (raGrid) * Math.PI / 180                      , pictureBox.Height / 2, 2);
+                graphics3d.DrawPointSpherical(Color.Red, l * Math.PI / 180, (raGrid + FormConsole.FoV / 3) * Math.PI / 180, pictureBox.Height / 2, 2);
+            }
+
+            for (double l = 0; l <= 360; l += FormConsole.FoV / 100)
+            {
+                graphics3d.DrawPointSpherical(Color.Red, (decGrid - FormConsole.FoV / 3) * Math.PI / 180, l * Math.PI / 180, pictureBox.Height / 2, 2);
+                graphics3d.DrawPointSpherical(Color.Red, (decGrid * Math.PI / 180)                      , l * Math.PI / 180, pictureBox.Height / 2, 2);
+                graphics3d.DrawPointSpherical(Color.Red, (decGrid + FormConsole.FoV / 3) * Math.PI / 180, l * Math.PI / 180, pictureBox.Height / 2, 2);
+            }
+
+
+            int index = 1;
+
+            foreach (DataGridViewRow dataGridViewRow in dataGridView.Rows)
+            {
+
+                try
+                {
+
+                    double vmag = double.Parse(dataGridViewRow.Cells[2].Value.ToString(), CultureInfo.InvariantCulture);
+                    double ra = (double.Parse(dataGridViewRow.Cells[4].Value.ToString(), CultureInfo.InvariantCulture) * 360 / 24) * Math.PI / 180;
+                    double dec = double.Parse(dataGridViewRow.Cells[5].Value.ToString(), CultureInfo.InvariantCulture) * Math.PI / 180;
+
+                    graphics3d.DrawPointSpherical(Color.Black, dec, ra, pictureBox.Height / 2, (int)(15 - vmag));
+                    graphics3d.DrawStringSpherical(Color.Black, 8, dec + FormConsole.FoV / 1800, ra + FormConsole.FoV / 1800, pictureBox.Height / 2, index.ToString());
+
+                    index++;
+
+                }
+                catch (Exception)
+                { }
+                
+            }
+
+            graphics3d.DrawFoV(Color.Black);
+            pictureBox.Image = bitmap;
+
         }
 
         private void HideColumns(int[] columns)

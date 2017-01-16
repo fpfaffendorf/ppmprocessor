@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PPMProcessor", "PPMProcesso
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarsMatch", "StarsMatch\StarsMatch.csproj", "{7078352C-BBAB-49A1-9B68-3441C8D5BAC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plot", "Plot\Plot.csproj", "{205904D6-D8D9-4566-9C98-BF53556E4DCA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{7078352C-BBAB-49A1-9B68-3441C8D5BAC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7078352C-BBAB-49A1-9B68-3441C8D5BAC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7078352C-BBAB-49A1-9B68-3441C8D5BAC8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{205904D6-D8D9-4566-9C98-BF53556E4DCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{205904D6-D8D9-4566-9C98-BF53556E4DCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{205904D6-D8D9-4566-9C98-BF53556E4DCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{205904D6-D8D9-4566-9C98-BF53556E4DCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -84,7 +84,8 @@ namespace PPMProcessor
                         textBoxConsole.AppendText("> dec-format [dms|d|r]\r\n");
                         textBoxConsole.AppendText("> common-name [common name]\r\n");
                         textBoxConsole.AppendText("> list [all|basic] [page number|filename]\r\n");
-                        textBoxConsole.AppendText("> plot [filename]\r\n");
+                        textBoxConsole.AppendText("> center [record index]\r\n");
+                        textBoxConsole.AppendText("> chart\r\n");
                         textBoxConsole.AppendText("> exit\r\n");
                     }
                     break;
@@ -333,13 +334,29 @@ namespace PPMProcessor
                     }
                     break;
 
-                    case "plot":
+                    case "center":
                     {
-                        System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                        Process.Start( 
-                            config.AppSettings.Settings["Plot"].Value,
-                            args[1]
-                            );
+                        ((Main)this.Owner).Center(int.Parse(args[1]), ref this.RA, ref this.Dec);
+                    }
+                    break;
+
+                    case "chart":
+                    {
+                        if ((RAFormat != "h") || (DecFormat != "d"))
+                        {
+                            textBoxConsole.AppendText("\r\n");
+                            textBoxConsole.AppendText("> ra-format has to be 'h' and dec-format has to be 'd'");                            
+                        }
+                        else
+                        if (FoV == 0)
+                        {
+                            textBoxConsole.AppendText("\r\n");
+                            textBoxConsole.AppendText("> fov has to be greater than zero");
+                        }
+                        else
+                        {
+                            ((Main)this.Owner).Chart();
+                        }
                     }
                     break;
 

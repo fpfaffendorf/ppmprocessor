@@ -38,9 +38,17 @@
             this.toolStripMenuItemConsole = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItemExit = new System.Windows.Forms.ToolStripMenuItem();
+            this.tabControl = new System.Windows.Forms.TabControl();
+            this.tabPageList = new System.Windows.Forms.TabPage();
+            this.tabPageChart = new System.Windows.Forms.TabPage();
+            this.pictureBox = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
             this.contextMenuStripDataGridView.SuspendLayout();
             this.menuStrip.SuspendLayout();
+            this.tabControl.SuspendLayout();
+            this.tabPageList.SuspendLayout();
+            this.tabPageChart.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // dataGridView
@@ -51,11 +59,11 @@
             this.dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView.ContextMenuStrip = this.contextMenuStripDataGridView;
             this.dataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridView.Location = new System.Drawing.Point(0, 24);
+            this.dataGridView.Location = new System.Drawing.Point(3, 3);
             this.dataGridView.Name = "dataGridView";
             this.dataGridView.ReadOnly = true;
             this.dataGridView.RowHeadersWidth = 60;
-            this.dataGridView.Size = new System.Drawing.Size(593, 380);
+            this.dataGridView.Size = new System.Drawing.Size(579, 348);
             this.dataGridView.TabIndex = 1;
             // 
             // contextMenuStripDataGridView
@@ -98,29 +106,70 @@
             // 
             this.toolStripMenuItemConsole.Name = "toolStripMenuItemConsole";
             this.toolStripMenuItemConsole.ShortcutKeys = System.Windows.Forms.Keys.F12;
-            this.toolStripMenuItemConsole.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItemConsole.Size = new System.Drawing.Size(142, 22);
             this.toolStripMenuItemConsole.Text = "Console";
             this.toolStripMenuItemConsole.Click += new System.EventHandler(this.toolStripMenuItemConsole_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(149, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(139, 6);
             // 
             // toolStripMenuItemExit
             // 
             this.toolStripMenuItemExit.Name = "toolStripMenuItemExit";
-            this.toolStripMenuItemExit.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItemExit.Size = new System.Drawing.Size(142, 22);
             this.toolStripMenuItemExit.Text = "Exit";
             this.toolStripMenuItemExit.Click += new System.EventHandler(this.toolStripMenuItemExit_Click);
+            // 
+            // tabControl
+            // 
+            this.tabControl.Controls.Add(this.tabPageList);
+            this.tabControl.Controls.Add(this.tabPageChart);
+            this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl.Location = new System.Drawing.Point(0, 24);
+            this.tabControl.Name = "tabControl";
+            this.tabControl.SelectedIndex = 0;
+            this.tabControl.Size = new System.Drawing.Size(593, 380);
+            this.tabControl.TabIndex = 5;
+            // 
+            // tabPageList
+            // 
+            this.tabPageList.Controls.Add(this.dataGridView);
+            this.tabPageList.Location = new System.Drawing.Point(4, 22);
+            this.tabPageList.Name = "tabPageList";
+            this.tabPageList.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageList.Size = new System.Drawing.Size(585, 354);
+            this.tabPageList.TabIndex = 0;
+            this.tabPageList.Text = "List";
+            this.tabPageList.UseVisualStyleBackColor = true;
+            // 
+            // tabPageChart
+            // 
+            this.tabPageChart.Controls.Add(this.pictureBox);
+            this.tabPageChart.Location = new System.Drawing.Point(4, 22);
+            this.tabPageChart.Name = "tabPageChart";
+            this.tabPageChart.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageChart.Size = new System.Drawing.Size(585, 354);
+            this.tabPageChart.TabIndex = 1;
+            this.tabPageChart.Text = "Chart";
+            this.tabPageChart.UseVisualStyleBackColor = true;
+            // 
+            // pictureBox
+            // 
+            this.pictureBox.Location = new System.Drawing.Point(8, 6);
+            this.pictureBox.Name = "pictureBox";
+            this.pictureBox.Size = new System.Drawing.Size(480, 480);
+            this.pictureBox.TabIndex = 0;
+            this.pictureBox.TabStop = false;
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(593, 404);
-            this.Controls.Add(this.dataGridView);
+            this.Controls.Add(this.tabControl);
             this.Controls.Add(this.menuStrip);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
@@ -134,6 +183,10 @@
             this.contextMenuStripDataGridView.ResumeLayout(false);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
+            this.tabControl.ResumeLayout(false);
+            this.tabPageList.ResumeLayout(false);
+            this.tabPageChart.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -149,6 +202,9 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemConsole;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemExit;
+        private System.Windows.Forms.TabControl tabControl;
+        private System.Windows.Forms.TabPage tabPageList;
+        private System.Windows.Forms.TabPage tabPageChart;
+        private System.Windows.Forms.PictureBox pictureBox;
     }
 }
-
